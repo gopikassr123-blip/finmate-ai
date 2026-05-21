@@ -1,54 +1,28 @@
 from flask import Flask, render_template, request, jsonify
-import google.generativeai as genai
 
 app = Flask(__name__)
 
-# Paste your Gemini API Key here
-genai.configure(api_key="AIzaSyB6muXHtZX9nRaD3-Y9W-7PN05dwbAHz_U")
-
-# Gemini Model
-model = genai.GenerativeModel("models/gemini-2.0-flash")
-
-# Home Page
 @app.route("/")
 def home():
     return render_template("index.html")
 
-# Chat Route
 @app.route("/chat", methods=["POST"])
 def chat():
-    try:
-        data = request.get_json()
+    data = request.get_json()
+    user_message = data.get("message", "").lower()
 
-        user_message = data["message"]
+    if "budget" in user_message or "salary" in user_message:
+        reply = "FinMate AI Suggestion: Follow the 50-30-20 budgeting rule. Use 50% for needs, 30% for wants, and 20% for savings."
+    elif "save" in user_message or "saving" in user_message:
+        reply = "FinMate AI Suggestion: Track your daily expenses regularly and save a fixed amount every month."
+    elif "expense" in user_message or "shopping" in user_message:
+        reply = "FinMate AI Suggestion: Reduce unnecessary shopping and maintain a weekly spending limit."
+    elif "investment" in user_message:
+        reply = "FinMate AI Suggestion: Start with low-risk investments and learn basic financial planning before investing."
+    else:
+        reply = "FinMate AI can help you with budgeting, saving tips, expense analysis, and student financial management."
 
-        prompt = f"""
-        You are FinMate AI, a smart finance chatbot.
+    return jsonify({"reply": reply})
 
-        Help users with:
-        - budgeting
-        - saving money
-        - expense analysis
-        - financial advice for students
-        - monthly planning
-
-        Give short and simple answers.
-
-        User Message:
-        {user_message}
-        """
-
-        response = model.generate_content(prompt)
-
-        return jsonify({
-            "reply": response.text
-        })
-
-    except Exception as e:
-    return jsonify({
-        "reply": "💰 FinMate AI Suggestion:\n\nTry following the 50-30-20 budgeting rule.\n\n50% for needs\n30% for wants\n20% for savings.\n\nAlso reduce unnecessary shopping and track daily expenses regularly."
-    })
-
-# Run App
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run()
