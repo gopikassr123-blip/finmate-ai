@@ -1,59 +1,61 @@
 from flask import Flask, render_template, request, jsonify
+import requests
 
 app = Flask(__name__)
 
-# Home Page
+OPENROUTER_API_KEY = "PASTE_YOUR_API_KEY_HERE"
+
 @app.route("/")
 def home():
     return render_template("index.html")
 
-# Chat Route
 @app.route("/chat", methods=["POST"])
 def chat():
 
     data = request.get_json()
 
-    user_message = data.get("message", "").lower()
+    user_message = data.get("message", "")
 
-    # Budget Questions
-    if "budget" in user_message or "salary" in user_message:
+    try:
 
-        reply = "A simple way to manage your salary is by following the 50-30-20 budgeting rule. Use 50% of your money for basic needs like food and travel, 30% for personal spending, and try to save at least 20% every month."
+        response = requests.post(
+            "https://openrouter.ai/api/v1/chat/completions",
 
-    # Saving Money
-    elif "save" in user_message or "saving" in user_message:
+            headers={
+                "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+                "Content-Type": "application/json"
+            },
 
-        reply = "If you want to save money effectively, first track where your money is going every day. Avoid unnecessary online shopping and try saving a fixed small amount every month. Even small savings become useful in the future."
+            json={
 
-    # Expense / Shopping
-    elif "expense" in user_message or "shopping" in user_message:
+                "model": "openrouter/auto",
 
-        reply = "Your expenses can become difficult to manage if you spend without planning. Try setting a weekly spending limit and avoid impulse purchases. Tracking expenses regularly helps you control unnecessary spending."
+                "messages": [
 
-    # Spending Control
-    elif "spending" in user_message:
+                    {
+                        "role": "system",
+                        "content": "You are FinMate AI, a friendly finance chatbot. Explain financial topics in very simple and clear English like teaching a beginner."
+                    },
 
-        reply = "To stop unnecessary spending, avoid buying things immediately when you see offers online. Wait for one day before purchasing anything non-essential. This simple habit can help you save a lot of money."
+                    {
+                        "role": "user",
+                        "content": user_message
+                    }
+                ]
+            }
+        )
 
-    # Investment
-    elif "investment" in user_message:
+        result = response.json()
 
-        reply = "If you are a beginner, start with low-risk investments and first learn basic financial planning. Never invest money without understanding the risks involved."
+        reply = result["choices"][0]["message"]["content"]
 
-    # Financial Tips
-    elif "tips" in user_message or "beginner" in user_message:
+    except Exception:
 
-        reply = "Here are some simple financial tips for beginners. First, track your daily expenses regularly. Second, create a monthly budget before spending money. Third, save at least a small fixed amount every month. Finally, avoid unnecessary online shopping and focus on long-term savings."
-
-    # Default Reply
-    else:
-
-        reply = "FinMate AI can help you with budgeting, saving money, expense management, and financial guidance for students and beginners."
+        reply = "Sorry, AI service is currently unavailable."
 
     return jsonify({
         "reply": reply
     })
 
-# Run Flask App
 if __name__ == "__main__":
     app.run()
