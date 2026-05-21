@@ -1,16 +1,18 @@
 from flask import Flask, render_template, request, jsonify
 import requests
+import os
 
 app = Flask(__name__)
 
-OPENROUTER_API_KEY = import os
-
+# OpenRouter API Key from Render Environment Variable
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 
+# Home Page
 @app.route("/")
 def home():
     return render_template("index.html")
 
+# Chat Route
 @app.route("/chat", methods=["POST"])
 def chat():
 
@@ -36,7 +38,7 @@ def chat():
 
                     {
                         "role": "system",
-                        "content": "You are FinMate AI, a friendly finance chatbot. Explain financial topics in very simple and clear English like teaching a beginner."
+                        "content": "You are FinMate AI, a friendly finance chatbot. Explain financial topics in very simple and clear English like teaching a beginner. Give human-like, easy-to-understand financial advice."
                     },
 
                     {
@@ -53,11 +55,12 @@ def chat():
 
     except Exception:
 
-        reply = "Sorry, AI service is currently unavailable."
+        reply = "Sorry, AI service is currently unavailable. Please try again later."
 
     return jsonify({
         "reply": reply
     })
 
+# Run Flask App
 if __name__ == "__main__":
     app.run()
